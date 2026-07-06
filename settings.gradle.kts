@@ -31,3 +31,5 @@ dependencyResolutionManagement {
 include(":androidApp")
 include(":sharedLogic")
 include(":sharedUI")
+include(":typestring-annotations")
+include(":typestring-processor")
