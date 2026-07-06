@@ -107,4 +107,89 @@ class TypeStringProcessorTest {
         assertTrue(!generated.contains("InnerLeafA"))
         assertTrue(!generated.contains("InnerLeafB"))
     }
+
+    @Test
+    fun `non-sealed annotated class fails the build with a symbol-naming error`() {
+        val source = SourceFile.kotlin(
+            "NotSealed.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            class NotSealed
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertTrue(result.exitCode != KotlinCompilation.ExitCode.OK)
+        assertTrue(result.messages.contains("NotSealed"), "actual messages:\n${result.messages}")
+    }
+
+    @Test
+    fun `empty sealed class compiles with a warning and generates no property`() {
+        val source = SourceFile.kotlin(
+            "Empty.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            sealed class Empty
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertTrue(result.messages.contains("Empty"), "actual messages:\n${result.messages}")
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .firstOrNull { it.name == "EmptyTypeString.kt" }
+        assertTrue(generated == null, "expected no EmptyTypeString.kt to be generated")
+    }
+
+    @Test
+    fun `typeString resolves polymorphically on a base-typed reference`() {
+        val source = SourceFile.kotlin(
+            "Poly.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            sealed class PolyBase {
+                object Leaf : PolyBase()
+            }
+
+            fun useIt(any: Any): String {
+                val base = any as PolyBase
+                return base.typeString
+            }
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+    }
 }

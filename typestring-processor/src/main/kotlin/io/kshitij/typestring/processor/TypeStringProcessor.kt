@@ -7,6 +7,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
@@ -36,10 +37,24 @@ class TypeStringProcessor(
     }
 
     private fun generateTypeStringFile(baseClass: KSClassDeclaration) {
+        if (Modifier.SEALED !in baseClass.modifiers) {
+            logger.error(
+                "@GenerateTypeString can only be applied to a sealed class or sealed interface, " +
+                    "but '${baseClass.simpleName.asString()}' is not sealed.",
+                baseClass,
+            )
+            return
+        }
+
         val subclasses = baseClass.getSealedSubclasses().toList()
-        // Phase 3 owns diagnostics for non-sealed/empty bases (logger.error/warn).
-        // Phase 2 just skips generation rather than emitting a broken empty `when`.
-        if (subclasses.isEmpty()) return
+        if (subclasses.isEmpty()) {
+            logger.warn(
+                "@GenerateTypeString on '${baseClass.simpleName.asString()}' has no direct " +
+                    "subclasses; skipping typeString generation.",
+                baseClass,
+            )
+            return
+        }
 
         val baseClassName = baseClass.toClassName()
         val getter = FunSpec.getterBuilder()
