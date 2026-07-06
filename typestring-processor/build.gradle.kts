@@ -1,1 +1,13 @@
-// Placeholder — Phase 2 wires the kotlin("jvm") plugin and processor dependencies.
+plugins {
+    alias(libs.plugins.kotlinJvm)
+}
+
+dependencies {
+    implementation(libs.ksp.symbolProcessingApi)
+    implementation(libs.kotlinpoet)
+    implementation(libs.kotlinpoet.ksp)
+
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kctfork.core)
+    testImplementation(libs.kctfork.ksp)
+}
