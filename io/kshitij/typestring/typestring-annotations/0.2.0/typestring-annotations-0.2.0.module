@@ -1,0 +1,223 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.kshitij.typestring",
+    "module": "typestring-annotations",
+    "version": "0.2.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "metadataApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "typestring-annotations-metadata-0.2.0.jar",
+          "url": "typestring-annotations-0.2.0.jar",
+          "size": 2392,
+          "sha512": "29d799e4d79fa075a2abcd10df7ee7df0c363eb83266db43f26a7dca63e4a7084b172969b160e40e199c00e6d2fdda6e62f646411be03d21fe885c2d13d75e3c",
+          "sha256": "6e3ea2cc676e2f80e64cce8feb9ecb72c0ca4689e4642a3aba7dc8f44c4cafd1",
+          "sha1": "4ce418ac34bcf7e0cbdae133bbd891624fa1a84b",
+          "md5": "00e976621c59f0242e89e74e9c3ed46d"
+        }
+      ]
+    },
+    {
+      "name": "metadataSourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "files": [
+        {
+          "name": "typestring-annotations-kotlin-0.2.0-sources.jar",
+          "url": "typestring-annotations-0.2.0-sources.jar",
+          "size": 1021,
+          "sha512": "77dfad63e644a9809dd1b76a712c28d6a664bfaf3b79d2fd0a5173aeffeec59d0530712305234ed1bfb675465d73c7cd7b1c28f709c3ffc120a16724337ebcf8",
+          "sha256": "aff85163c17aceb75f5d027d645a7fdbe12f2b482aa604cad422852d436ee8fe",
+          "sha1": "1ce71c0a0f0d3a6dce8075d45ca37c71c60c12ab",
+          "md5": "6d3d534e77fa3eeb13b93be87bf8ea50"
+        }
+      ]
+    },
+    {
+      "name": "androidApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-android/0.2.0/typestring-annotations-android-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-android",
+        "version": "0.2.0"
+      }
+    },
+    {
+      "name": "androidRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-android/0.2.0/typestring-annotations-android-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-android",
+        "version": "0.2.0"
+      }
+    },
+    {
+      "name": "androidSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-android/0.2.0/typestring-annotations-android-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-android",
+        "version": "0.2.0"
+      }
+    },
+    {
+      "name": "iosArm64ApiElements-published",
+      "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-iosarm64/0.2.0/typestring-annotations-iosarm64-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-iosarm64",
+        "version": "0.2.0"
+      }
+    },
+    {
+      "name": "iosArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-iosarm64/0.2.0/typestring-annotations-iosarm64-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-iosarm64",
+        "version": "0.2.0"
+      }
+    },
+    {
+      "name": "iosArm64MetadataElements-published",
+      "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-iosarm64/0.2.0/typestring-annotations-iosarm64-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-iosarm64",
+        "version": "0.2.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64ApiElements-published",
+      "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-iossimulatorarm64/0.2.0/typestring-annotations-iossimulatorarm64-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-iossimulatorarm64",
+        "version": "0.2.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-iossimulatorarm64/0.2.0/typestring-annotations-iossimulatorarm64-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-iossimulatorarm64",
+        "version": "0.2.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64MetadataElements-published",
+      "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../typestring-annotations-iossimulatorarm64/0.2.0/typestring-annotations-iossimulatorarm64-0.2.0.module",
+        "group": "io.kshitij.typestring",
+        "module": "typestring-annotations-iossimulatorarm64",
+        "version": "0.2.0"
+      }
+    }
+  ]
+}
