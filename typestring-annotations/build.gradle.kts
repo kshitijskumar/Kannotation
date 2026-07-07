@@ -12,6 +12,7 @@ version = providers.gradleProperty("typestring.version").get()
 kotlin {
     iosArm64()
     iosSimulatorArm64()
+    iosX64()
 
     androidLibrary {
         namespace = "io.kshitij.typestring.annotations"

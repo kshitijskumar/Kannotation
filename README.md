@@ -51,7 +51,7 @@ non-sealed `abstract` class breaking the chain, a max-nesting-depth guard, etc).
 TypeString publishes two artifacts:
 
 - `io.kshitij.typestring:typestring-annotations` — Kotlin Multiplatform (targets:
-  `androidTarget`, `iosArm64`, `iosSimulatorArm64`), the `@GenerateTypeString`
+  `androidTarget`, `iosArm64`, `iosSimulatorArm64`, `iosX64`), the `@GenerateTypeString`
   annotation consumers apply to their sealed classes.
 - `io.kshitij.typestring:typestring-processor` — JVM-only KSP `SymbolProcessor`
   that does the codegen at compile time.
@@ -189,8 +189,8 @@ processor and asserts on the generated output and error/warning messages.
 
 ### Releasing
 
-Publishing must be run from **macOS** — the `iosArm64`/`iosSimulatorArm64` klibs
-require a Kotlin/Native toolchain, which only builds on macOS.
+Publishing must be run from **macOS** — the `iosArm64`/`iosSimulatorArm64`/`iosX64`
+klibs require a Kotlin/Native toolchain, which only builds on macOS.
 
 1. Bump `typestring.version` in [`gradle.properties`](./gradle.properties).
 2. Commit that change (the publish script refuses to run with a dirty working tree).
@@ -200,7 +200,7 @@ require a Kotlin/Native toolchain, which only builds on macOS.
    ./scripts/publish-library.sh
    ```
 
-   This builds `typestring-annotations` (android + iosArm64 + iosSimulatorArm64) and
+   This builds `typestring-annotations` (android + iosArm64 + iosSimulatorArm64 + iosX64) and
    `typestring-processor` (jvm) via `maven-publish`, checks out the `mvn-repo` branch
    into a scratch git worktree, publishes straight into it so `maven-metadata.xml`
    merges with (rather than overwrites) prior versions, then commits and pushes that
