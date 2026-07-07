@@ -18,3 +18,18 @@ sealed interface SampleInterface {
 }
 
 fun SampleInterface.testInterface(): String = this.typeString
+
+@GenerateTypeString
+sealed class SampleNestedResult {
+    object Loading : SampleNestedResult()
+    sealed class Failure : SampleNestedResult() {
+        object Network : Failure()
+        object Unknown : Failure()
+    }
+    sealed class Success : SampleNestedResult() {
+        data class WithData(val payload: String) : Success()
+        object Unknown : Success()
+    }
+}
+
+fun SampleNestedResult.testNested(): String = this.typeString

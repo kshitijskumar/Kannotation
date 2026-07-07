@@ -68,7 +68,7 @@ class TypeStringProcessorTest {
     }
 
     @Test
-    fun `nested sealed subclass is treated as a single opaque branch`() {
+    fun `nested sealed subclasses are recursively resolved into dotted paths`() {
         val source = SourceFile.kotlin(
             "Nested.kt",
             """
@@ -101,11 +101,240 @@ class TypeStringProcessorTest {
             .readText()
 
         assertTrue(generated.contains("is Outer.Leaf -> \"Leaf\""), "actual generated text:\n$generated")
-        assertTrue(generated.contains("is Outer.InnerSealed -> \"InnerSealed\""))
-        // getSealedSubclasses() is non-recursive by design (Phase 2 scope):
-        // InnerSealed's own children must not appear here.
-        assertTrue(!generated.contains("InnerLeafA"))
-        assertTrue(!generated.contains("InnerLeafB"))
+        assertTrue(generated.contains("is Outer.InnerSealed.InnerLeafA -> \"InnerSealed.InnerLeafA\""))
+        assertTrue(generated.contains("is Outer.InnerSealed.InnerLeafB -> \"InnerSealed.InnerLeafB\""))
+        // InnerSealed itself must NOT get its own branch now that it's recursed into.
+        assertTrue(!generated.contains("is Outer.InnerSealed -> "))
+    }
+
+    @Test
+    fun `resolves dotted path through three or more levels of sealed nesting`() {
+        val source = SourceFile.kotlin(
+            "DeepNest.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            sealed class Root {
+                sealed class Level1 : Root() {
+                    sealed class Level2 : Level1() {
+                        object Level3Leaf : Level2()
+                    }
+                }
+            }
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "RootTypeString.kt" }
+            .readText()
+
+        assertTrue(
+            generated.contains(
+                "is Root.Level1.Level2.Level3Leaf -> \"Level1.Level2.Level3Leaf\"",
+            ),
+            "actual generated text:\n$generated",
+        )
+    }
+
+    @Test
+    fun `exceeding max sealed nesting depth fails the build with a distinct error`() {
+        // Nest one level deeper than MAX_SEALED_NESTING_DEPTH (10) to trip the guard.
+        val levels = 12
+        val body = buildString {
+            append("sealed class TooDeep {\n")
+            repeat(levels) { i -> append("sealed class L$i : ${if (i == 0) "TooDeep" else "L${i - 1}"}() {\n") }
+            append("object Bottom : L${levels - 1}()\n")
+            repeat(levels) { append("}\n") }
+            append("}\n")
+        }
+        val source = SourceFile.kotlin(
+            "TooDeep.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            $body
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertTrue(result.exitCode != KotlinCompilation.ExitCode.OK)
+        assertTrue(result.messages.contains("TooDeep"), "actual messages:\n${result.messages}")
+        assertTrue(
+            result.messages.contains("max sealed-nesting depth"),
+            "actual messages:\n${result.messages}",
+        )
+    }
+
+    @Test
+    fun `mixed-level siblings - leaf and nested sealed at the same level both resolve`() {
+        val source = SourceFile.kotlin(
+            "Mixed.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            sealed class Mixed {
+                object LeafA : Mixed()
+                sealed class NestedSealed : Mixed() {
+                    object NestedLeafA : NestedSealed()
+                    object NestedLeafB : NestedSealed()
+                }
+                object LeafB : Mixed()
+            }
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "MixedTypeString.kt" }
+            .readText()
+
+        assertTrue(generated.contains("is Mixed.LeafA -> \"LeafA\""), "actual generated text:\n$generated")
+        assertTrue(generated.contains("is Mixed.LeafB -> \"LeafB\""))
+        assertTrue(generated.contains("is Mixed.NestedSealed.NestedLeafA -> \"NestedSealed.NestedLeafA\""))
+        assertTrue(generated.contains("is Mixed.NestedSealed.NestedLeafB -> \"NestedSealed.NestedLeafB\""))
+        assertTrue(!generated.contains("is Mixed.NestedSealed -> "))
+    }
+
+    @Test
+    fun `non-sealed abstract subclass breaks the chain with a distinct error message`() {
+        val source = SourceFile.kotlin(
+            "Chain.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            sealed class Chain {
+                object DirectLeaf : Chain()
+                abstract class AbstractLink : Chain()
+            }
+
+            class ConcreteEnd : Chain.AbstractLink()
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertTrue(result.exitCode != KotlinCompilation.ExitCode.OK)
+        assertTrue(result.messages.contains("AbstractLink"), "actual messages:\n${result.messages}")
+        assertTrue(
+            result.messages.contains("breaks the sealed hierarchy chain"),
+            "actual messages:\n${result.messages}",
+        )
+        // Must not be confusable with the root-non-sealed error from the "not sealed" test.
+        assertTrue(
+            !result.messages.contains("can only be applied to a sealed class or sealed interface"),
+            "actual messages:\n${result.messages}",
+        )
+    }
+
+    @Test
+    fun `open concrete subclass is treated as a leaf, not recursed into`() {
+        val source = SourceFile.kotlin(
+            "OpenChain.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            sealed class Container {
+                open class OpenLeaf : Container()
+                object OtherLeaf : Container()
+            }
+
+            class SubOfOpenLeaf : Container.OpenLeaf()
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "ContainerTypeString.kt" }
+            .readText()
+
+        assertTrue(generated.contains("is Container.OpenLeaf -> \"OpenLeaf\""), "actual generated text:\n$generated")
+        assertTrue(generated.contains("is Container.OtherLeaf -> \"OtherLeaf\""))
+        assertTrue(!generated.contains("SubOfOpenLeaf"))
+    }
+
+    @Test
+    fun `empty sealed node is treated as a plain leaf`() {
+        val source = SourceFile.kotlin(
+            "Wrapper.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+
+            @GenerateTypeString
+            sealed class Wrapper {
+                object Direct : Wrapper()
+                sealed class EmptyInner : Wrapper()
+            }
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "WrapperTypeString.kt" }
+            .readText()
+
+        assertTrue(generated.contains("is Wrapper.Direct -> \"Direct\""), "actual generated text:\n$generated")
+        assertTrue(generated.contains("is Wrapper.EmptyInner -> \"EmptyInner\""))
     }
 
     @Test
