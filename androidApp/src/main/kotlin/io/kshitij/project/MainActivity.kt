@@ -31,9 +31,11 @@ class MainActivity : ComponentActivity() {
         )
         val a = results[(System.nanoTime() % results.size).toInt()]
         val b = interfaces[(System.nanoTime() % interfaces.size).toInt()]
+        val c = SampleNestedResult.Success.WithData("something")
 
         toastA(a)
         toastB(b)
+        toastC(c)
     }
 
 
@@ -55,6 +57,15 @@ class MainActivity : ComponentActivity() {
         Toast.makeText(
             this,
             "AnnStuff: interface type: ${a.typeString} -- reflected: ${a::class.simpleName} -- ${a.toString()}",
+            Toast.LENGTH_LONG,
+        ).show()
+    }
+
+    fun toastC(a: SampleNestedResult) {
+        println("AnnStuff: nested type: ${a.typeString} -- reflected: ${a::class.simpleName}")
+        Toast.makeText(
+            this,
+            "AnnStuff: nested type: ${a.typeString} -- reflected: ${a::class.simpleName} -- ${a.toString()}",
             Toast.LENGTH_LONG,
         ).show()
     }
