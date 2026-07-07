@@ -48,10 +48,29 @@ non-sealed `abstract` class breaking the chain, a max-nesting-depth guard, etc).
 
 ### Setup
 
-TypeString is currently consumed as an in-repo module dependency (no Maven
-publishing yet). To use it in another module of this project:
+TypeString publishes two artifacts:
 
-1. Apply the KSP Gradle plugin alongside Kotlin Multiplatform:
+- `io.kshitij.typestring:typestring-annotations` — Kotlin Multiplatform (targets:
+  `androidTarget`, `iosArm64`, `iosSimulatorArm64`), the `@GenerateTypeString`
+  annotation consumers apply to their sealed classes.
+- `io.kshitij.typestring:typestring-processor` — JVM-only KSP `SymbolProcessor`
+  that does the codegen at compile time.
+
+They're distributed as a plain Maven repo hosted on this repo's `mvn-repo` git
+branch (see [Releasing](#releasing) below), served via raw.githubusercontent.com —
+there's no JitPack/Maven Central account involved, so add it as a regular Maven
+repository:
+
+1. Add the repository and apply the KSP Gradle plugin alongside Kotlin Multiplatform:
+
+   ```kotlin
+   // settings.gradle.kts
+   dependencyResolutionManagement {
+       repositories {
+           maven("https://raw.githubusercontent.com/kshitijskumar/Kannotation/mvn-repo/")
+       }
+   }
+   ```
 
    ```kotlin
    // <your-module>/build.gradle.kts
@@ -74,7 +93,7 @@ publishing yet). To use it in another module of this project:
        sourceSets {
            commonMain {
                dependencies {
-                   implementation(projects.typestringAnnotations)
+                   implementation("io.kshitij.typestring:typestring-annotations:0.1.0")
                }
                kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
            }
@@ -82,7 +101,7 @@ publishing yet). To use it in another module of this project:
    }
 
    dependencies {
-       add("kspCommonMainMetadata", projects.typestringProcessor)
+       add("kspCommonMainMetadata", "io.kshitij.typestring:typestring-processor:0.1.0")
    }
 
    tasks.matching { it.name != "kspCommonMainKotlinMetadata" && it.name.startsWith("ksp") }
@@ -92,7 +111,9 @@ publishing yet). To use it in another module of this project:
    ```
 
    See [`sharedLogic/build.gradle.kts`](./sharedLogic/build.gradle.kts) for a
-   working example of this wiring.
+   working example of this wiring (using `projects.typestringAnnotations` /
+   `projects.typestringProcessor` in-repo module references instead of the
+   published coordinates above, since this repo consumes its own modules directly).
 
 ### Usage
 
@@ -166,6 +187,34 @@ Runs the processor's [kotlin-compile-testing](https://github.com/ZacSweers/kotli
 (kctfork) test suite, which compiles small fixture sources through the real KSP
 processor and asserts on the generated output and error/warning messages.
 
+### Releasing
+
+Publishing must be run from **macOS** — the `iosArm64`/`iosSimulatorArm64` klibs
+require a Kotlin/Native toolchain, which only builds on macOS.
+
+1. Bump `typestring.version` in [`gradle.properties`](./gradle.properties).
+2. Commit that change (the publish script refuses to run with a dirty working tree).
+3. Run:
+
+   ```
+   ./scripts/publish-library.sh
+   ```
+
+   This builds `typestring-annotations` (android + iosArm64 + iosSimulatorArm64) and
+   `typestring-processor` (jvm) via `maven-publish`, checks out the `mvn-repo` branch
+   into a scratch git worktree, publishes straight into it so `maven-metadata.xml`
+   merges with (rather than overwrites) prior versions, then commits and pushes that
+   branch to `origin`. It's the same mechanism JitPack-style git-hosted Maven repos
+   use, just run manually instead of on JitPack's (Linux-only, so it can't build iOS
+   klibs) infrastructure.
+4. Consumers pick up the new version by bumping the version in their dependency
+   coordinates — there's no further indexing step, raw.githubusercontent.com serves
+   the branch contents directly.
+
+The first time this runs, the GitHub repo must already exist and `origin` must be
+pushable (`git remote -v` to check) — the script creates the `mvn-repo` branch
+itself if it doesn't exist yet, but it can't create the repo itself.
+
 ---
 
 ## Kotlin Multiplatform project layout
@@ -201,6 +250,13 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 
 - Android tests: `./gradlew :sharedUI:testAndroidHostTest :sharedLogic:testAndroidHostTest`
 - iOS tests: `./gradlew :sharedLogic:iosSimulatorArm64Test`
+
+---
+
+## License
+
+TypeString (`typestring-annotations`, `typestring-processor`) is licensed under the
+[MIT License](./LICENSE).
 
 ---
 

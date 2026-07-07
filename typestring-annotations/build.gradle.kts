@@ -3,7 +3,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
+    `maven-publish`
 }
+
+group = providers.gradleProperty("typestring.group").get()
+version = providers.gradleProperty("typestring.version").get()
 
 kotlin {
     iosArm64()
@@ -19,3 +23,5 @@ kotlin {
         }
     }
 }
+
+apply(from = rootProject.file("gradle/publishing.gradle.kts"))
