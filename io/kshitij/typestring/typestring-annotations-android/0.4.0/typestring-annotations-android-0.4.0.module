@@ -1,0 +1,102 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../typestring-annotations/0.4.0/typestring-annotations-0.4.0.module",
+    "group": "io.kshitij.typestring",
+    "module": "typestring-annotations",
+    "version": "0.4.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "androidApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "typestring-annotations.aar",
+          "url": "typestring-annotations-android-0.4.0.aar",
+          "size": 1487,
+          "sha512": "cb39cf77c1a926a40d3e4b1108534718d238049b0142161aa00965c9d1241b4fc29bc115b548e36b50ea2a1138a520df60397a84bd0294fb217926719a194514",
+          "sha256": "002a3f4ddf2d12b447c4d391866ff4f1c641888f167281104c560871f701bbbb",
+          "sha1": "f9ce8686389ec4b99e0e5ae77499e4026ede2b1b",
+          "md5": "9faafacd4934d3416312cb37aaa2e776"
+        }
+      ]
+    },
+    {
+      "name": "androidRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "typestring-annotations.aar",
+          "url": "typestring-annotations-android-0.4.0.aar",
+          "size": 1487,
+          "sha512": "cb39cf77c1a926a40d3e4b1108534718d238049b0142161aa00965c9d1241b4fc29bc115b548e36b50ea2a1138a520df60397a84bd0294fb217926719a194514",
+          "sha256": "002a3f4ddf2d12b447c4d391866ff4f1c641888f167281104c560871f701bbbb",
+          "sha1": "f9ce8686389ec4b99e0e5ae77499e4026ede2b1b",
+          "md5": "9faafacd4934d3416312cb37aaa2e776"
+        }
+      ]
+    },
+    {
+      "name": "androidSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "files": [
+        {
+          "name": "typestring-annotations-android-0.4.0-sources.jar",
+          "url": "typestring-annotations-android-0.4.0-sources.jar",
+          "size": 1021,
+          "sha512": "77dfad63e644a9809dd1b76a712c28d6a664bfaf3b79d2fd0a5173aeffeec59d0530712305234ed1bfb675465d73c7cd7b1c28f709c3ffc120a16724337ebcf8",
+          "sha256": "aff85163c17aceb75f5d027d645a7fdbe12f2b482aa604cad422852d436ee8fe",
+          "sha1": "1ce71c0a0f0d3a6dce8075d45ca37c71c60c12ab",
+          "md5": "6d3d534e77fa3eeb13b93be87bf8ea50"
+        }
+      ]
+    }
+  ]
+}
