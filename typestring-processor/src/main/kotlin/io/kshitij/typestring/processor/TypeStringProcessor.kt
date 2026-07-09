@@ -27,6 +27,7 @@ class TypeStringProcessor(
     // is KMP (android + iOS only, no jvm target) and exposes no variant a plain kotlin("jvm")
     // module can consume. KSP only needs the annotation's fully-qualified name as a string.
     private val generateTypeStringAnnotation = "io.kshitij.typestring.GenerateTypeString"
+    private val typeStringLeafAnnotation = "io.kshitij.typestring.TypeStringLeaf"
 
     /** One `when` branch: the leaf class itself and its dotted path (e.g. "Success" or "Failure.Unknown"). */
     private data class TypeStringLeaf(val declaration: KSClassDeclaration, val path: String)
@@ -137,6 +138,14 @@ class TypeStringProcessor(
             val path = ancestorPath + sub.simpleName.asString()
 
             when {
+                hasTypeStringLeafAnnotation(sub) -> {
+                    // Explicit opt-in to collapse this node's entire subtree - sealed or
+                    // non-sealed abstract - into a single branch. We never look at sub's own
+                    // children, so anything invalid further down (e.g. a non-sealed abstract
+                    // grandchild) is simply never visited and never an error.
+                    leaves += TypeStringLeaf(sub, path.joinToString("."))
+                }
+
                 Modifier.SEALED in sub.modifiers -> {
                     val grandchildren = sub.getSealedSubclasses().toList()
                     if (grandchildren.isEmpty()) {
@@ -159,7 +168,9 @@ class TypeStringProcessor(
                             "'${path.joinToString(".")}' is a non-sealed abstract class, which " +
                             "breaks the sealed hierarchy chain - getSealedSubclasses() cannot " +
                             "see subclasses beyond it. Make it sealed, or restructure so every " +
-                            "node between the base and the leaves is sealed.",
+                            "node between the base and the leaves is sealed. Alternatively, " +
+                            "annotate it with @TypeStringLeaf to intentionally collapse its " +
+                            "subtree into a single leaf.",
                         sub,
                     )
                     return false
@@ -175,4 +186,17 @@ class TypeStringProcessor(
         }
         return true
     }
+
+    /**
+     * Whether [declaration] carries `@TypeStringLeaf`, checked by resolving each annotation's
+     * type to its declaration's fully-qualified name and comparing against
+     * [typeStringLeafAnnotation] - the same FQN-string-matching this processor already relies on
+     * for [generateTypeStringAnnotation], necessary because this module has no compile-time
+     * dependency on typestring-annotations (see the comment above) and this check runs per-node
+     * during the recursive walk rather than via `getSymbolsWithAnnotation`.
+     */
+    private fun hasTypeStringLeafAnnotation(declaration: KSClassDeclaration): Boolean =
+        declaration.annotations.any {
+            it.annotationType.resolve().declaration.qualifiedName?.asString() == typeStringLeafAnnotation
+        }
 }

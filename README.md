@@ -122,12 +122,39 @@ sealed class SampleNestedResult {
 // -> "Loading", "Failure.Network", "Failure.Unknown", "Success.WithData", "Success.Unknown"
 ```
 
+Use `@TypeStringLeaf` to stop recursion at an intermediate node and collapse its entire
+subtree into a single branch — useful when a node's own children are just implementation
+variations (e.g. different ways a screen can be opened) rather than semantically distinct
+types for analytics:
+
+```kotlin
+@GenerateTypeString
+sealed class Args {
+    object DirectLeaf : Args()
+
+    @TypeStringLeaf
+    sealed class ConfirmPurchaseArgs : Args() {
+        object FreshWithoutProof : ConfirmPurchaseArgs()
+        object Renew : ConfirmPurchaseArgs()
+        object PaymentPostVerification : ConfirmPurchaseArgs()
+    }
+}
+// -> "DirectLeaf", "ConfirmPurchaseArgs" (FreshWithoutProof/Renew/PaymentPostVerification
+//    all collapse to the parent's own path - not "ConfirmPurchaseArgs.FreshWithoutProof")
+```
+
+`@TypeStringLeaf` also rescues what would otherwise be a "breaks the sealed hierarchy chain"
+error on a non-sealed abstract node — it's an explicit opt-in to collapsing everything beneath
+it into one branch instead of failing the build. It has no effect when placed on the same
+class as `@GenerateTypeString`, or on a class not reachable from any
+`@GenerateTypeString`-annotated root.
+
 More runnable examples live in
 [`sharedLogic/src/commonMain/kotlin/io/kshitij/project/SampleResult.kt`](./sharedLogic/src/commonMain/kotlin/io/kshitij/project/SampleResult.kt).
 
 For the full design rationale (failure modes for non-sealed hierarchies, max-nesting
-guard, etc.), see [docs/initial_prds.md](./docs/initial_prds.md) and
-[docs/plan_v1_1.md](./docs/plan_v1_1.md).
+guard, etc.), see [docs/initial_prds.md](./docs/initial_prds.md),
+[docs/plan_v1_1.md](./docs/plan_v1_1.md), and [docs/plan_v1_2.md](./docs/plan_v1_2.md).
 
 ## Testing
 

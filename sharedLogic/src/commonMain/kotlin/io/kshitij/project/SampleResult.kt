@@ -1,6 +1,7 @@
 package io.kshitij.project
 
 import io.kshitij.typestring.GenerateTypeString
+import io.kshitij.typestring.TypeStringLeaf
 
 @GenerateTypeString
 sealed class SampleResult {
@@ -33,3 +34,17 @@ sealed class SampleNestedResult {
 }
 
 fun SampleNestedResult.testNested(): String = this.typeString
+
+@GenerateTypeString
+sealed class SampleCollapsedResult {
+    object DirectLeaf : SampleCollapsedResult()
+
+    @TypeStringLeaf
+    sealed class ConfirmPurchaseArgs : SampleCollapsedResult() {
+        object FreshWithoutProof : ConfirmPurchaseArgs()
+        object Renew : ConfirmPurchaseArgs()
+        object PaymentPostVerification : ConfirmPurchaseArgs()
+    }
+}
+
+fun SampleCollapsedResult.testCollapsed(): String = this.typeString

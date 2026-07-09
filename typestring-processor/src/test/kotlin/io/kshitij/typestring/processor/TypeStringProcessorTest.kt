@@ -29,6 +29,17 @@ class TypeStringProcessorTest {
         """.trimIndent(),
     )
 
+    private val typeStringLeafAnnotationSource = SourceFile.kotlin(
+        "TypeStringLeaf.kt",
+        """
+        package io.kshitij.typestring
+
+        @Retention(AnnotationRetention.SOURCE)
+        @Target(AnnotationTarget.CLASS)
+        annotation class TypeStringLeaf
+        """.trimIndent(),
+    )
+
     @Test
     fun `generates typeString property for flat sealed hierarchy`() {
         val source = SourceFile.kotlin(
@@ -420,5 +431,226 @@ class TypeStringProcessorTest {
 
         val result = compilation.compile()
         assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+    }
+
+    @Test
+    fun `TypeStringLeaf on a sealed node with children collapses the whole subtree`() {
+        val source = SourceFile.kotlin(
+            "Collapsed.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+            import io.kshitij.typestring.TypeStringLeaf
+
+            @GenerateTypeString
+            sealed class Args {
+                object DirectLeaf : Args()
+                @TypeStringLeaf
+                sealed class ConfirmPurchaseArgs : Args() {
+                    object FreshWithoutProof : ConfirmPurchaseArgs()
+                    object Renew : ConfirmPurchaseArgs()
+                    sealed class PaymentPostVerification : ConfirmPurchaseArgs() {
+                        object Variant : PaymentPostVerification()
+                    }
+                }
+            }
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource, typeStringLeafAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "ArgsTypeString.kt" }
+            .readText()
+
+        assertTrue(generated.contains("is Args.DirectLeaf -> \"DirectLeaf\""), "actual generated text:\n$generated")
+        assertTrue(generated.contains("is Args.ConfirmPurchaseArgs -> \"ConfirmPurchaseArgs\""))
+        assertTrue(!generated.contains("FreshWithoutProof"))
+        assertTrue(!generated.contains("Renew"))
+        assertTrue(!generated.contains("PaymentPostVerification"))
+        assertTrue(!generated.contains("Variant"))
+    }
+
+    @Test
+    fun `TypeStringLeaf on a non-sealed abstract node rescues the chain-break error`() {
+        val source = SourceFile.kotlin(
+            "RescuedChain.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+            import io.kshitij.typestring.TypeStringLeaf
+
+            @GenerateTypeString
+            sealed class Chain {
+                object DirectLeaf : Chain()
+                @TypeStringLeaf
+                abstract class AbstractLink : Chain()
+            }
+
+            class ConcreteEnd : Chain.AbstractLink()
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource, typeStringLeafAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertTrue(
+            !result.messages.contains("breaks the sealed hierarchy chain"),
+            "actual messages:\n${result.messages}",
+        )
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "ChainTypeString.kt" }
+            .readText()
+
+        assertTrue(generated.contains("is Chain.DirectLeaf -> \"DirectLeaf\""), "actual generated text:\n$generated")
+        assertTrue(generated.contains("is Chain.AbstractLink -> \"AbstractLink\""))
+        assertTrue(!generated.contains("ConcreteEnd"))
+    }
+
+    @Test
+    fun `TypeStringLeaf at a deep level yields the full accumulated dotted path`() {
+        val source = SourceFile.kotlin(
+            "DeepCollapse.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+            import io.kshitij.typestring.TypeStringLeaf
+
+            @GenerateTypeString
+            sealed class Root {
+                sealed class Outer : Root() {
+                    @TypeStringLeaf
+                    sealed class ConfirmPurchaseArgs : Outer() {
+                        object FreshWithoutProof : ConfirmPurchaseArgs()
+                    }
+                }
+            }
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource, typeStringLeafAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "RootTypeString.kt" }
+            .readText()
+
+        assertTrue(
+            generated.contains("is Root.Outer.ConfirmPurchaseArgs -> \"Outer.ConfirmPurchaseArgs\""),
+            "actual generated text:\n$generated",
+        )
+        assertTrue(!generated.contains("FreshWithoutProof"))
+    }
+
+    @Test
+    fun `TypeStringLeaf collapsed sibling coexists with a normally-recursed sealed sibling`() {
+        val source = SourceFile.kotlin(
+            "MixedCollapse.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+            import io.kshitij.typestring.TypeStringLeaf
+
+            @GenerateTypeString
+            sealed class Mixed {
+                @TypeStringLeaf
+                sealed class Collapsed : Mixed() {
+                    object A : Collapsed()
+                    object B : Collapsed()
+                }
+                sealed class Recursed : Mixed() {
+                    object C : Recursed()
+                    object D : Recursed()
+                }
+            }
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource, typeStringLeafAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "MixedTypeString.kt" }
+            .readText()
+
+        assertTrue(generated.contains("is Mixed.Collapsed -> \"Collapsed\""), "actual generated text:\n$generated")
+        assertTrue(!generated.contains("Mixed.Collapsed.A"))
+        assertTrue(!generated.contains("Mixed.Collapsed.B"))
+        assertTrue(generated.contains("is Mixed.Recursed.C -> \"Recursed.C\""))
+        assertTrue(generated.contains("is Mixed.Recursed.D -> \"Recursed.D\""))
+    }
+
+    @Test
+    fun `TypeStringLeaf makes an otherwise-invalid non-sealed abstract descendant irrelevant`() {
+        val source = SourceFile.kotlin(
+            "IrrelevantDescendant.kt",
+            """
+            package com.example
+            import io.kshitij.typestring.GenerateTypeString
+            import io.kshitij.typestring.TypeStringLeaf
+
+            @GenerateTypeString
+            sealed class Root {
+                object DirectLeaf : Root()
+                @TypeStringLeaf
+                sealed class Collapsed : Root() {
+                    abstract class InvalidNonSealedAbstract : Collapsed()
+                }
+            }
+
+            class ConcreteEnd : Root.Collapsed.InvalidNonSealedAbstract()
+            """.trimIndent(),
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source, generateTypeStringAnnotationSource, typeStringLeafAnnotationSource)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf<SymbolProcessorProvider>(TypeStringProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertTrue(
+            !result.messages.contains("breaks the sealed hierarchy chain"),
+            "actual messages:\n${result.messages}",
+        )
+
+        val generated = compilation.kspSourcesDir.walkTopDown()
+            .first { it.name == "RootTypeString.kt" }
+            .readText()
+
+        assertTrue(generated.contains("is Root.DirectLeaf -> \"DirectLeaf\""), "actual generated text:\n$generated")
+        assertTrue(generated.contains("is Root.Collapsed -> \"Collapsed\""))
+        assertTrue(!generated.contains("InvalidNonSealedAbstract"))
     }
 }
