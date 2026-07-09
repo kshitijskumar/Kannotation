@@ -54,7 +54,7 @@ Published as a plain Maven repo on this repo's `mvn-repo` branch, served via
        sourceSets {
            commonMain {
                dependencies {
-                   implementation("io.kshitij.typestring:typestring-annotations:0.3.0")
+                   implementation("io.kshitij.typestring:typestring-annotations:0.4.0")
                }
                kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
            }
@@ -62,7 +62,7 @@ Published as a plain Maven repo on this repo's `mvn-repo` branch, served via
    }
 
    dependencies {
-       add("kspCommonMainMetadata", "io.kshitij.typestring:typestring-processor:0.3.0")
+       add("kspCommonMainMetadata", "io.kshitij.typestring:typestring-processor:0.4.0")
    }
 
    tasks.matching { it.name != "kspCommonMainKotlinMetadata" && it.name.startsWith("ksp") }
