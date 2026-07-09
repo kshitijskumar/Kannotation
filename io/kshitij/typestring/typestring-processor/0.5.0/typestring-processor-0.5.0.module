@@ -1,0 +1,103 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.kshitij.typestring",
+    "module": "typestring-processor",
+    "version": "0.5.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "typestring-processor-0.5.0.jar",
+          "url": "typestring-processor-0.5.0.jar",
+          "size": 12510,
+          "sha512": "03eedacda8e7532fe31eff75cd06834ac1dc16fe606b9aabe022756b8671b31fa666a83ed349ecc3f2e408b4dd6bd08d8e898993bff73ba18951e42faa0daf60",
+          "sha256": "5c3cf5b9d1b53f340295027f737b2b06121c0675f4104585174009756f466fe1",
+          "sha1": "745b6741758483f813ad4e57521d333a286d5f3d",
+          "md5": "a3f9f1c849dbefe691c5d3be8dfbf0b1"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.devtools.ksp",
+          "module": "symbol-processing-api",
+          "version": {
+            "requires": "2.3.9"
+          }
+        },
+        {
+          "group": "com.squareup",
+          "module": "kotlinpoet",
+          "version": {
+            "requires": "2.3.0"
+          }
+        },
+        {
+          "group": "com.squareup",
+          "module": "kotlinpoet-ksp",
+          "version": {
+            "requires": "2.3.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "typestring-processor-0.5.0.jar",
+          "url": "typestring-processor-0.5.0.jar",
+          "size": 12510,
+          "sha512": "03eedacda8e7532fe31eff75cd06834ac1dc16fe606b9aabe022756b8671b31fa666a83ed349ecc3f2e408b4dd6bd08d8e898993bff73ba18951e42faa0daf60",
+          "sha256": "5c3cf5b9d1b53f340295027f737b2b06121c0675f4104585174009756f466fe1",
+          "sha1": "745b6741758483f813ad4e57521d333a286d5f3d",
+          "md5": "a3f9f1c849dbefe691c5d3be8dfbf0b1"
+        }
+      ]
+    }
+  ]
+}
